@@ -46,7 +46,7 @@ To install the ToxicovigilanceTool, follow these steps:
 
 To start using the ToxicovigilanceTool, execute the main script:
 ```sh
-python main.py
+python toxicovigilance_tool.py
 ```
 
 ### Examples
@@ -71,16 +71,8 @@ model = load_model('path/to/your/model.h5')
 
 Prepare your input data in the format that the model expects. This usually involves scaling, reshaping, and normalizing the data.
 
-```python
-import numpy as np
+See steps 3 and 4 in the  [source code](code/toxicovigilance_tool.py)
 
-# Example: Preparing a single sample input
-# Assuming the model expects images of shape (224, 224, 3)
-input_data = np.random.random((1, 224, 224, 3))  # Replace with your actual data
-
-# If your model expects normalized data, normalize it accordingly
-input_data = input_data / 255.0
-```
 
 #### Step 3: Make Predictions
 
