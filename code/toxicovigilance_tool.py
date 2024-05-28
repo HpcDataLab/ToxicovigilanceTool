@@ -20,22 +20,14 @@ Original file is located at
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Dropout
-from keras.layers import Dense, LSTM, BatchNormalization
-import tensorflow as tf
-from sklearn.model_selection import train_test_split
-import os
-from keras.layers import Input
-from tensorflow.keras import layers
-from keras.layers import Flatten
-from keras.regularizers import l2
-from tensorflow.keras.layers import Bidirectional
-from keras.layers import Concatenate
+from tensorflow.keras.layers import Dense, Dropout, LSTM, BatchNormalization, Bidirectional, Input, Flatten, Concatenate
 from tensorflow.keras import Model
-
-#!nvidia-smi
+from keras.regularizers import l2
+import tensorflow as tf
+import os
 
 """### 2. Import data from Github repository: 
 
@@ -44,310 +36,104 @@ GitHub Repository: https://github.com/HpcDataLab/ToxicovigilanceTool
 
 # Import data from different Datasets
 prado = pd.read_csv("https://raw.githubusercontent.com/HpcDataLab/ToxicovigilanceTool/main/data/Daily_flight_activity_Prado.csv")
-
 berascou = pd.read_csv("https://raw.githubusercontent.com/HpcDataLab/ToxicovigilanceTool/main/data/Daily_flight_activity_Berascou.csv")
-
 colin = pd.read_csv("https://raw.githubusercontent.com/HpcDataLab/ToxicovigilanceTool/main/data/Daily_flight_activity_Colin.csv", sep=";")
-
 coulon = pd.read_csv("https://raw.githubusercontent.com/HpcDataLab/ToxicovigilanceTool/main/data/Daily_flight_activity_Coulon.csv")
 
-frames = [prado, berascou]
-  
-prado = pd.concat(frames)
+# Concatenate data
+prado = pd.concat([prado, berascou, colin])
 
-frames = [prado, colin]
-
-prado = pd.concat(frames)
-
-#prado = prado.loc[prado['Treatment'] == "control"]
-
-prado.head()
-
-prado.head()
-
-len(prado)
-
-#prado = prado.dropna()
-
-#print(prado)
-
-print("Number of registers:",len(prado))
-
-# remove Treatment variabel
-
-# Extract labels from DF 
-labels = prado.Treatment
-
-# Remove labels from dataframe
-#prado = prado.drop("Treatment", axis =1)
-#prado.head()
-#labels.head()
-
-"""### 3. Split data into two sets, train and test datasets. 
- 
-"""
-
-# Commented out IPython magic to ensure Python compatibility.
-# %matplotlib inline
-# Extract unique bees
+print("Number of records:", len(prado))
 print("Unique bees: ", len(prado.ID.unique()))
 
-# Subdivide data 70% training 30% test
-X_train, X_test, y_train, y_test = train_test_split(prado, prado.Treatment, test_size=0.25, random_state=1234) # TODO: Subdivide sets using individual bees instead of general registers. 
+# Split data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(prado, prado.Treatment, test_size=0.25, random_state=1234)
 
-#print("Number of registers:", prado.shape)
+print("Shape of data for training:", X_train.shape)
+print("Shape of data for testing:", X_test.shape)
+print("Unique bees in training data: ", len(X_train.ID.unique()))
 
-# Training data
-print("Shape of data for training:",X_train.shape)
-
-# Testing data
-print("Shape of data for testing:",X_test.shape)
-
-#print("Training data", X_train)
-
-print("Unique bees: ", len(X_train.ID.unique()))
-
-# Separate control bees
+# Separate control and pesticide bees
 control = prado[prado.Treatment == "control"]
-
-# Separate pesticide bees
 pesticide = prado[prado.Treatment == "pesticide"]
 
-"""x = ["control", "pesticide"]
-y = [len(control), len(pesticide)]
-
-
-plt.bar(x, y, color = "red", width = 0.5)"""
-
-
-"""print("Number of control registers: ", len(control))
-print("Unique control bees",len(control.ID.unique()))
-
+print("Number of control registers: ", len(control))
+print("Unique control bees: ", len(control.ID.unique()))
 print("Number of pesticide registers: ", len(pesticide))
-print("Unique pesticide bees",len(pesticide.ID.unique()))
+print("Unique pesticide bees: ", len(pesticide.ID.unique()))
 
-# Subdivide data 70% training 30% test Control
-C_X_train, C_X_test, C_y_train, C_y_test = train_test_split(control, control.Treatment, test_size=0.3)
-
-P_X_train, P_X_test, P_y_train, P_y_test = train_test_split(pesticide, pesticide.Treatment, test_size=0.3)
-
-print("Total training control registers: ",len(C_X_train))
-print("Total training pesticide registers: ", len(P_X_train))
-
-# merge testing and training datasets
-X_train = pd.merge(C_X_train, P_X_train, how="outer")
-X_test =  pd.merge(C_X_test, P_X_test, how="outer")
-
-y_train = pd.merge(C_y_train, P_y_train, how="outer")
-y_test =  pd.merge(C_y_test, P_y_test, how="outer")
-
-
-
-print("Total train Regs.", len(X_train))
-print("Total test Regs.", len(X_test))"""
-
-#print(X_train)
-
-# Preprocessing data convert to numpy array and change type
-X_train_dur = X_train.duration.to_numpy()
-X_test_dur = X_test.duration.to_numpy()
-
-"""
-Change labels instead of using str use int 
-TODO: This can be replaced using pd.get_dummies.
-    0: => Control
-    1: => Pesticide
-"""
-
-#y_train = y_train.replace({"control": 0, "pesticide": 1})
-#y_test = y_test.replace({"control": 0, "pesticide": 1})
-
-#Ytrain = y_train.to_numpy()
-#Ytest = y_test.to_numpy()
-
-
-#print(y_train)
-
-
-
-print(f"Shape of Ytest, {pd.get_dummies(y_test).shape}")
-
+# Preprocess data
 Ytrain = pd.get_dummies(y_train).values
 Ytest = pd.get_dummies(y_test).values
+Xtrain = X_train[["Age", "flights", "duration"]].values.astype('float')
+Xtest = X_test[["Age", "flights", "duration"]].values.astype('float')
 
-#print("DF before drop columns", X_train.shape)
+print("Train DF After drop columns:", Xtrain.shape)
+print("Test DF After drop columns:", Xtest.shape)
 
-# Use only one variable
-#Xtrain = X_train[["duration"]].values.astype('float')
-#Xtest = X_test[["duration"]].values.astype('float')
-
-# original
-Xtrain = X_train[["Age", "flights" , "duration"]].values.astype('float')
-Xtest = X_test[["Age", "flights" , "duration"]].values.astype('float')
-
-print("Train DF After drop columns",Xtrain.shape)
-print("Test DF After drop columns",Xtest.shape)
-
-#print(Xtrain)
-print(Ytrain)
-print(Ytrain.shape)
-
-"""### 4. Change structure of datases for training proposes."""
-
-# Batch size
-batchZize = 32
-
-# Add additional dimmension
+# Reshape data
 Xtrain = np.reshape(Xtrain, (Xtrain.shape[0], Xtrain.shape[1]))
-#Ytrain = np.reshape(Ytrain, (Ytrain.shape[0], Ytrain.shape[1], 1))
-
-#np.reshape(Ytrain, (Ytrain.shape[0]),1)
-
 Xtest = np.reshape(Xtest, (Xtest.shape[0], Xtest.shape[1]))
-#Ytest = np.reshape(Ytest, (Ytest.shape[0], Ytest.shape[1], 1))
 
-print("\Shape of training data is ")
-print(f"\tRows: {X_train.shape[0]}")
-print(f"\tColumns: {X_train.shape[1]}")
-#print(f"\tAdditional dimension: {Xtrain.shape[2]}")
-#print(f"\tShape of train data {Xtrain.shape}")
-#print(f"\tShape of test data {Xtest.shape}")
-print(f"\tShape of  data {Ytrain.shape}")
+print("\Shape of training data:")
+print(f"\tRows: {Xtrain.shape[0]}")
+print(f"\tColumns: {Xtrain.shape[1]}")
+print(f"\tShape of Ytrain: {Ytrain.shape}")
 
 """### 5. Define a RNN model and compile the RNN."""
 
-def createModel(X_train, Y_train, dropout = 0.2, metrics = ['accuracy', 'AUC']):
-  # Build the Model
-  # Define timesteps and the number of features
-
-    n_timesteps = 3
-
-    n_features = 1
-
-    # RNN + SLP Model
+def createModel(X_train, Y_train, dropout=0.2, metrics=['accuracy', 'AUC']):
+    n_timesteps, n_features = X_train.shape[1], 1
 
     model = Sequential()
+    model.add(Input(shape=(n_timesteps, n_features)))
+    model.add(Bidirectional(LSTM(128, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01), return_sequences=True)))
+    model.add(Dropout(0.1))
+    model.add(Bidirectional(LSTM(64, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01))))
+    model.add(Dropout(0.1))
+    model.add(Dense(64, kernel_regularizer=l2(0.001), activation='relu'))
+    model.add(Dense(2, activation='sigmoid'))
 
-    # Define input layer
-
-    model.add(Input(shape=(n_timesteps,n_features)))
-    
-    # RNN Layers
-
-    # layer - 1
-
-    model.add(Bidirectional(LSTM(128, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01),return_sequences=True)))
-
-    model.add(Dropout(0.1 ))
-
-    # layer - 2
-
-    rec_layer_two = Bidirectional(LSTM(64, kernel_regularizer=l2(0.01), recurrent_regularizer=l2(0.01)) )
-
-    rec_layer_two = model.add(Dropout(0.1))
-
-    # SLP Layers
-
-    static_layer_one = Dense(64, kernel_regularizer=l2(0.001), activation='relu')
-
-    # Combine layers - RNN + SLP
-
-    model.add(Concatenate(axis= 1 )([rec_layer_two,static_layer_one]))
-
-    model.add(Dense(64, activation='relu'))
-
-    model.add(Dense(2,activation='sigmoid'))
-
-
-    # binary cross entropy loss
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-
-
-    #model.compile(loss=focal_loss_custom(alpha=0.2, gamma=2.0), optimizer='adam', metrics=['accuracy',f1_m,precision_m, recall_m])
-
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=metrics)
     model.summary()
 
     return model
 
-"""### 6. Train model and get performance metrics.
+"""### 6. Train model and get performance metrics."""
 
-TODO: Implement cross validation
-"""
-
-## Reserve a GPU
-os.environ["CUDA_VISIBLE_DEVICES"]="0"
-
-# Retraining model for 10 epochs
-
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 epochs = 10
-entrenamiento = 0
 
-#for i in range(1, max_iter):
-model = createModel(X_train = Xtrain, Y_train = Ytrain, dropout = 0.2)
-
-# Just focus on training data 
-history = model.fit(Xtrain, Ytrain, batch_size = 512, epochs = epochs, use_multiprocessing=True)
-
-# Training and validationd data
-#model.fit(Xtrain, Ytrain, batch_size = 128, epochs = ep, use_multiprocessing=True, validation_data=(Xtest, Ytest))
-
-#model.evaluate(Xtest,Ytest, batch_size=64, verbose = 1)
-
-#print(model.metrics)
-  #print(f"En el intento {i}, la precisión del modelo respecto a los datos de prueba fue: {np.round(precision[1]*100,5)} %, y la pérdida fue de {np.round(precision[0],5)}")
+model = createModel(X_train=Xtrain, Y_train=Ytrain, dropout=0.2)
+history = model.fit(Xtrain, Ytrain, batch_size=512, epochs=epochs, use_multiprocessing=True)
 
 """### 7. Calculate performance metrics of the model"""
 
 Y_pred = model.predict(Xtest)
+Ypred = [np.argmax(i) for i in Y_pred]
 
+Y_real = pd.DataFrame(Ytest).idxmax(axis=1).values
 
-Ypred = []
-for i in Y_pred:
-    Ypred.append(np.argmax(i))
+confusion = tf.math.confusion_matrix(Y_real, Ypred)
 
-print(Ypred)
-
-Y_real = pd.DataFrame(Ytest)
-Y_real = Y_real.idxmax(axis = 1)
-Y_real = Y_real.values
-
-print(Y_real)
-
-confussion = tf.math.confusion_matrix(
-    Y_real,
-    Ypred,
-    num_classes=None,
-    weights=None,
-    dtype=tf.dtypes.int32,
-    name=None
-)
-
-print(confussion)
+print(confusion)
 
 import seaborn as sns
-sns.heatmap(confussion, annot=True, cmap='Blues', fmt="d")
+sns.heatmap(confusion, annot=True, cmap='Blues', fmt="d")
 
+"""### 8. Plot precision along epochs"""
 
-#precision = accuracy_score(Y_real, Y_pred)
-
-
-#print("La precisión del modelo fue del", np.round(precision*100,5), "%")
-
-"""### 8. Plot precission along epochs"""
-
-Ytest#plt.plot(Entrenamiento.history['accuracy'])
-#plt.plot(.history['val_accuracy'])
-plt.title('Cambio en la precisión del modelo')
-plt.ylabel('Precisión')
-plt.xlabel('Épocas')
-plt.legend(['Entrenamiento', 'Prueba'], loc='best')
-plt.savefig('Cambio en la precisión del modelo')
+plt.plot(history.history['accuracy'])
+plt.title('Change in Model Accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epochs')
+plt.legend(['Train'], loc='best')
+plt.savefig('Change_in_model_accuracy')
 plt.show()
 
-"""### 8. Generate confussión matrix"""
+"""### 9. Generate confusion matrix"""
 
-import seaborn as sns
 ConfMat = tf.math.confusion_matrix(Y_real, Y_pred).numpy()
-print("Matriz de confusión: ")
-fig = sns.heatmap(ConfMat, annot=True, center=True, cmap="Oranges", fmt ='')
-fig.get_figure().savefig("Matriz de confusión")
+print("Confusion Matrix: ")
+fig = sns.heatmap(ConfMat, annot=True, center=True, cmap="Oranges", fmt='')
+fig.get_figure().savefig("Confusion_Matrix")
