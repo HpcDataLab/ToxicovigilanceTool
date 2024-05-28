@@ -46,7 +46,7 @@ prado = pd.concat([prado, berascou, colin])
 print("Number of records:", len(prado))
 print("Unique bees: ", len(prado.ID.unique()))
 
-# Split data into train and test sets
+### 3. Split data into train and test sets
 X_train, X_test, y_train, y_test = train_test_split(prado, prado.Treatment, test_size=0.25, random_state=1234)
 
 print("Shape of data for training:", X_train.shape)
@@ -62,7 +62,7 @@ print("Unique control bees: ", len(control.ID.unique()))
 print("Number of pesticide registers: ", len(pesticide))
 print("Unique pesticide bees: ", len(pesticide.ID.unique()))
 
-# Preprocess data
+### 4.  Preprocess data: 
 Ytrain = pd.get_dummies(y_train).values
 Ytest = pd.get_dummies(y_test).values
 Xtrain = X_train[["Age", "flights", "duration"]].values.astype('float')
