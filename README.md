@@ -1,6 +1,5 @@
 ## Using honey bee flight activity data and a deep learning model as a toxicovigilance tool
 
-This tool is an advanced data analytics platform designed to monitor and analyze toxicological data. This repository hosts the source code, datasets, and documentation necessary for deploying and using the tool effectively.
 
 This repository contains the [source code](code/toxicovigilance_tool.py) of a Recurrent Neural Network to Classify pesticides on bees using activity data.
 
@@ -13,7 +12,7 @@ This repository contains the [source code](code/toxicovigilance_tool.py) of a Re
 
 ## Introduction
 
-The ToxicovigilanceTool is developed to facilitate the surveillance of toxicological information. It leverages machine learning algorithms and data visualization techniques to detect, analyze, and report toxicological trends and anomalies. This tool is essential for public health organizations, environmental agencies, and research institutions focused on toxicology.
+The tool is developed to facilitate the surveillance of toxicological information. It leverages machine learning algorithms and data visualization techniques to detect, analyze, and report toxicological trends and anomalies. This tool is essential for public health organizations, environmental agencies, and research institutions focused on toxicology.
 
 ## Features
 
