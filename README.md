@@ -49,8 +49,6 @@ To start using the ToxicovigilanceTool, execute the main script:
 python main.py
 ```
 
-Refer to the [User Guide](docs/UserGuide.md) for detailed instructions on configuring and operating the tool.
-
 ### Examples
 
 Check the `examples` directory for sample scripts demonstrating various functionalities of the tool.
